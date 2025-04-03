@@ -33,6 +33,14 @@ Write-Host "若用本地路径安装，需要解锁 adb push."
 Write-Host "若用下载链接安装，则不需要."
 $inputMsg = Read-Host "请输入软件位置"
 
+# 清理用户输入
+if ($inputMsg.StartsWith('&')) {
+	# 去除 & 开头
+    $inputMsg = $inputMsg.Substring(1).Trim()
+}
+# 去除引号
+$inputMsg = $inputMsg.Trim('"', "'")
+
 # 清理旧文件
 & $adbPath shell "if test -e /sdcard/apk.txt; then rm /sdcard/apk.txt; fi"
 & $adbPath shell "if test -e /sdcard/apk.apk; then rm /sdcard/apk.apk; fi"
