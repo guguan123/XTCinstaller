@@ -21,9 +21,9 @@ function Add-InstallCommand {
 
 # 检查设备连接
 Write-Host "正在连接手表..."
-$deviceList = & $adbPath devices
-if (-not ($deviceList -match "device")) {
-	throw "未检测到设备连接"
+$deviceList = & $adbPath devices | Select-String -Pattern "device$"
+if ($deviceList.Count -eq 0) {
+    throw "未检测到设备连接"
 }
 Write-Host "连接成功."
 
