@@ -4,6 +4,14 @@
 
 ## 使用方法
 
+交互式运行：
+
 ```batch
 PowerShell -ExecutionPolicy Bypass -File "XTCinstaller.ps1"
+```
+
+或者通过外部参数运行：
+
+```powershell
+.\XTCinstaller.ps1 -apkAddress "C:\Users\Me\Downloads\app.apk"
 ```
