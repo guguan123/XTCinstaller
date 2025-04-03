@@ -1,4 +1,11 @@
-# PowerShell 脚本：通过 ADB 安装 APK 到小天才电话手表
+# ------------------------------------------------------------------------------
+# Script Name: XTCinstaller.ps1
+# Author: GuGuan123
+# Version: 1.0
+# Created: 2025-04-03
+# Description: 通过 ADB 安装 APK 到小天才电话手表
+# ------------------------------------------------------------------------------
+
 
 # 假设 adb.exe 已添加到系统 PATH 中，或者需要指定完整路径
 $adbPath = "adb"  # 如果 adb 不在 PATH 中，可以改为 "C:\path\to\adb.exe"
