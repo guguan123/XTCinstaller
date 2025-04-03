@@ -1,10 +1,15 @@
 # ------------------------------------------------------------------------------
 # Script Name: XTCinstaller.ps1
 # Author: GuGuan123
-# Version: 1.0
+# Version: 1.1
 # Created: 2025-04-03
+# Updated: 2025-04-04
 # Description: Install APK to XTC smartwatch via ADB
 # ------------------------------------------------------------------------------
+
+param (
+	[string]$apkAddress = ""  # External parameter for APK address (link or local path)
+)
 
 # Assuming adb.exe is added to the system PATH or a full path is provided
 $adbPath = "adb"  # If adb is not in PATH, change to "C:\path\to\adb.exe"
@@ -33,20 +38,21 @@ if ($deviceList.Count -eq 0) {
 }
 Write-Host "Connection successful."
 
-# Get user input for software location
-Write-Host "The software location can be either an APK download link or a local file path."
-Write-Host "If using a local path, ADB push needs to be unlocked."
-Write-Host "If using a download link, no additional steps are needed."
-$inputMsg = Read-Host "Please enter the software location"
+# Determine APK address: use external parameter if provided, otherwise prompt user
+if ([string]::IsNullOrWhiteSpace($apkAddress)) {
+	Write-Host "The software location can be either an APK download link or a local file path."
+	Write-Host "If using a local path, ADB push needs to be unlocked."
+	Write-Host "If using a download link, no additional steps are needed."
+	$inputMsg = Read-Host "Please enter the software location"
+} else {
+	$inputMsg = $apkAddress
+}
 
 # Clean up user input
-# Remove leading and trailing spaces
 $inputMsg = $inputMsg.Trim()
 if ($inputMsg.StartsWith('&')) {
-	# Remove leading &
 	$inputMsg = $inputMsg.Substring(1).Trim()
 }
-# Remove quotes
 $inputMsg = $inputMsg.Trim('"', "'")
 
 # Clean up old files
