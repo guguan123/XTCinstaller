@@ -34,6 +34,8 @@ Write-Host "若用下载链接安装，则不需要."
 $inputMsg = Read-Host "请输入软件位置"
 
 # 清理用户输入
+# 去除首位空格
+$inputMsg = $inputMsg.Trim()
 if ($inputMsg.StartsWith('&')) {
 	# 去除 & 开头
     $inputMsg = $inputMsg.Substring(1).Trim()
