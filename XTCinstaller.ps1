@@ -96,7 +96,6 @@ $commitCmd = Add-InstallCommand -cmdPart1 "pm" -cmdPart2 "-commit ${sessionID}"
 # Clean up temporary files
 & $adbPath shell "rm /sdcard/apk.txt"
 & $adbPath shell "rm /sdcard/apk.apk"
-Write-Host "Installation process finished."
 
 # & $adbPath kill-server
 } catch {
