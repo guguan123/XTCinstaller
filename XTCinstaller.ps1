@@ -3,14 +3,13 @@
 # Author: GuGuan123
 # Version: 1.0
 # Created: 2025-04-03
-# Description: 通过 ADB 安装 APK 到小天才电话手表
+# Description: Install APK to XTC smartwatch via ADB
 # ------------------------------------------------------------------------------
 
+# Assuming adb.exe is added to the system PATH or a full path is provided
+$adbPath = "adb"  # If adb is not in PATH, change to "C:\path\to\adb.exe"
 
-# 假设 adb.exe 已添加到系统 PATH 中，或者需要指定完整路径
-$adbPath = "adb"  # 如果 adb 不在 PATH 中，可以改为 "C:\path\to\adb.exe"
-
-# 函数：生成安装命令并写入临时文件
+# Generate install command and write to a temporary file
 function Add-InstallCommand {
 	param (
 		[string]$cmdPart1,
@@ -19,78 +18,77 @@ function Add-InstallCommand {
 	return "echo -n `"${cmdPart1} instal`">>/sdcard/apk.txt; echo `"l$cmdPart2`">>/sdcard/apk.txt;"
 }
 
-# 检测 ADB 是否已经安装
-if (Get-Command $adbPath -ErrorAction SilentlyContinue) {	# 检查 adb 是否在 PATH 中
+# Check if ADB is installed
+if (Get-Command $adbPath -ErrorAction SilentlyContinue) {	# Check if adb is in PATH
 	& $adbPath version
 } else {
-	throw "未检测到 ADB，请确保 ADB 已安装并在 PATH 中"
+	throw "ADB not found, please ensure ADB is installed and in the PATH"
 }
 
-# 检查设备连接
-Write-Host "正在连接手表..."
+# Check device connection
+Write-Host "Connecting to the smartwatch..."
 $deviceList = & $adbPath devices | Select-String -Pattern "device$"
 if ($deviceList.Count -eq 0) {
-	throw "未检测到设备连接"
+	throw "No device detected"
 }
-Write-Host "连接成功."
+Write-Host "Connection successful."
 
-# 获取用户输入的软件位置
-Write-Host "软件位置可输入 APK 下载链接或是本地文件路径."
-Write-Host "若用本地路径安装，需要解锁 adb push."
-Write-Host "若用下载链接安装，则不需要."
-$inputMsg = Read-Host "请输入软件位置"
+# Get user input for software location
+Write-Host "The software location can be either an APK download link or a local file path."
+Write-Host "If using a local path, ADB push needs to be unlocked."
+Write-Host "If using a download link, no additional steps are needed."
+$inputMsg = Read-Host "Please enter the software location"
 
-# 清理用户输入
-# 去除首位空格
+# Clean up user input
+# Remove leading and trailing spaces
 $inputMsg = $inputMsg.Trim()
 if ($inputMsg.StartsWith('&')) {
-	# 去除 & 开头
+	# Remove leading &
 	$inputMsg = $inputMsg.Substring(1).Trim()
 }
-# 去除引号
+# Remove quotes
 $inputMsg = $inputMsg.Trim('"', "'")
 
-# 清理旧文件
+# Clean up old files
 & $adbPath shell "if test -e /sdcard/apk.txt; then rm /sdcard/apk.txt; fi"
 & $adbPath shell "if test -e /sdcard/apk.apk; then rm /sdcard/apk.apk; fi"
 
-# 根据输入处理 APK 文件
+# Handle APK file based on input
 if ($inputMsg.Trim() -eq "") {
-	throw "您没有输入 APK 链接或路径"
+	throw "You did not enter an APK link or path"
 } elseif ($inputMsg -match "^(http://|https://|ftp://)") {
-	Write-Host "正在下载软件..."
-	# 使用 curl 下载文件到设备
+	Write-Host "Downloading the APK..."
+	# Use curl to download the file to the device
 	& $adbPath shell "curl --output /sdcard/apk.apk ${inputMsg}"
 } else {
-	# 检查本地文件是否存在
+	# Check if local file exists
 	if (-not (Test-Path $inputMsg)) {
-		throw "文件不存在: ${inputMsg}"
+		throw "File not found: ${inputMsg}"
 	}
-	# 推送本地文件到设备
+	# Push local file to the device
 	& $adbPath push $inputMsg "/sdcard/apk.apk"
 }
 
-Write-Host "正在创建安装会话..."
-# 创建安装会话
+Write-Host "Creating installation session..."
+# Create installation session
 $createCmd = Add-InstallCommand -cmdPart1 "pm" -cmdPart2 "-create"
 $response = & $adbPath shell "${createCmd} sh /sdcard/apk.txt"
 if (-not ($response -match "Success")) {
-	throw "创建安装会话失败: ${response}"
+	throw "Failed to create installation session: ${response}"
 }
 $sessionID = [int]($response -split '\[')[1].Split(']')[0]
-Write-Host "session ID: ${sessionID}"
+Write-Host "Session ID: ${sessionID}"
 
-Write-Host "正在安装软件，可能需要一些时间..."
-# 写入和提交安装会话
+Write-Host "Installing the software, this may take some time..."
+# Write and commit installation session
 & $adbPath shell "rm /sdcard/apk.txt"
 $writeCmd = Add-InstallCommand -cmdPart1 "pm" -cmdPart2 "-write ${sessionID} force /sdcard/apk.apk"
 $commitCmd = Add-InstallCommand -cmdPart1 "pm" -cmdPart2 "-commit ${sessionID}"
 & $adbPath shell "${writeCmd} ${commitCmd} sh /sdcard/apk.txt"
 
-# 清理临时文件
+# Clean up temporary files
 & $adbPath shell "rm /sdcard/apk.txt"
 & $adbPath shell "rm /sdcard/apk.apk"
-Write-Host "安装进程结束."
+Write-Host "Installation process finished."
 
-# 确保连接关闭（PowerShell 中直接调用 adb kill-server 可选）
 # & $adbPath kill-server
