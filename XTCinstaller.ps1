@@ -19,11 +19,18 @@ function Add-InstallCommand {
 	return "echo -n `"${cmdPart1} instal`">>/sdcard/apk.txt; echo `"l$cmdPart2`">>/sdcard/apk.txt;"
 }
 
+# 检测 ADB 是否已经安装
+if (Get-Command $adbPath -ErrorAction SilentlyContinue) {	# 检查 adb 是否在 PATH 中
+	& $adbPath version
+} else {
+	throw "未检测到 ADB，请确保 ADB 已安装并在 PATH 中"
+}
+
 # 检查设备连接
 Write-Host "正在连接手表..."
 $deviceList = & $adbPath devices | Select-String -Pattern "device$"
 if ($deviceList.Count -eq 0) {
-    throw "未检测到设备连接"
+	throw "未检测到设备连接"
 }
 Write-Host "连接成功."
 
@@ -38,7 +45,7 @@ $inputMsg = Read-Host "请输入软件位置"
 $inputMsg = $inputMsg.Trim()
 if ($inputMsg.StartsWith('&')) {
 	# 去除 & 开头
-    $inputMsg = $inputMsg.Substring(1).Trim()
+	$inputMsg = $inputMsg.Substring(1).Trim()
 }
 # 去除引号
 $inputMsg = $inputMsg.Trim('"', "'")
