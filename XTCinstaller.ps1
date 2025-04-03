@@ -23,6 +23,7 @@ function Add-InstallCommand {
 	return "echo -n `"${cmdPart1} instal`">>/sdcard/apk.txt; echo `"l$cmdPart2`">>/sdcard/apk.txt;"
 }
 
+try {
 # Check if ADB is installed
 if (Get-Command $adbPath -ErrorAction SilentlyContinue) {	# Check if adb is in PATH
 	& $adbPath version
@@ -98,3 +99,14 @@ $commitCmd = Add-InstallCommand -cmdPart1 "pm" -cmdPart2 "-commit ${sessionID}"
 Write-Host "Installation process finished."
 
 # & $adbPath kill-server
+} catch {
+	$exceptionName = $_.Exception.GetType().Name
+	$exceptionInfo = $_.Exception.Message
+	Write-Host "[Error] ${exceptionName}: ${exceptionInfo}"
+	Exit 1
+} finally {
+	if ($Host.UI.RawUI) {
+		Write-Host "Press Enter to exit."
+		$null = Read-Host
+	}
+}
