@@ -1,0 +1,2 @@
+# XTCinstaller
+一个用于在小天才电话手表安卓软件的PowerShell脚本
